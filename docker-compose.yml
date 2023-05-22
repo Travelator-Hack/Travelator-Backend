@@ -1,13 +1,14 @@
 version: '3'
 
 services:
-  mongo:
+  mongo_db:
     image: mongo:6.0.2
     ports:
-      - "27017:27017"
+      - 27019:27019
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
+    command: mongod --port 27019
 
   backend:
     build: .
@@ -15,4 +16,10 @@ services:
     ports:
       - 8000:8000
     depends_on:
-      - mongo
+      - mongo_db
+    environment:
+      MONGO_CONN_STR: mongodb://root:root@mongo_db:27019/?authMechanism=DEFAULT
+
+networks:
+  default:
+    name: travelator_net
