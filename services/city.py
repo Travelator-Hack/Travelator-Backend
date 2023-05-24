@@ -21,10 +21,13 @@ class Excursions(BaseModel):
     age: str
     has_audio_guide: bool
     language: list[str]
+    form: str
+    duration_min: str
     ticket_price: str
     is_avaible: bool
     city_id: str
     description: str
+    program: str
     route: dict[str, str]
 
 class ExcursionsRetrieve(BaseModel):
@@ -34,8 +37,15 @@ class ExcursionsRetrieve(BaseModel):
 class Hotels(BaseModel):
     id: str
     title: str
-    
+    address: str
+    email: str
+    phones: list[str]
+    activities: dict[str, str]
+    rooms: dict[str, bool]
+    meals: list[str]
+    services: list[dict[str, str]]
     city_id: str
+    stars: str
     description: str
 
 class HotelsRetrieve(BaseModel):
