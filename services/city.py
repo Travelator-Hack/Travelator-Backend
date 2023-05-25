@@ -233,6 +233,19 @@ class _CityService(_MongoClient):
             )
         )
         
+    async def get_city_info_by_city_id(self, city_id: str) -> City:
+        events = self.find_events_by_city_id(city_id)
+        excursions = self.find_excursions_by_city_id(city_id)
+        hotels = self.find_hotels_by_city_id(city_id)
+        places = self.find_places_by_city_id(city_id)
+        restaurants = self.find_events_by_city_id(city_id)
+        city = self.find_city_by_id(city_id)
+        return {**city, 
+                "events": events, 
+                "excursions": excursions,
+                "hotels": hotels,
+                "places": places,
+                "restaurants": restaurants}
 
 
 
