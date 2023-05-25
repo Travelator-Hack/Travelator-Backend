@@ -29,4 +29,5 @@ async def get_city(city_id: str):
 
 @router.get("/{city_id}/events")
 async def get_city_events(city_id: str):
-    ...
+    with handle_cities_exception():
+        return await CityService.find_events_by_city_id(city_id)

@@ -4,43 +4,43 @@ from bson.objectid import ObjectId
 from motor.motor_asyncio import AsyncIOMotorDatabase, AsyncIOMotorCollection
 
 
-class Events(BaseModel):
+class Event(BaseModel):
     id: str
     title: str
     age: str
     start_date: str | None
     end_date: str | None
     ticket_price: str
-    is_avaible: bool
+    is_available: bool
     city_id: str
     description: str
 
 
-class EventsRetrieve(BaseModel):
+class EventRetrieve(BaseModel):
     pass
 
 
-class Excursions(BaseModel):
+class Excursion(BaseModel):
     id: str
     title: str
     age: str
     has_audio_guide: bool
     language: list[str]
-    form: str
-    duration_min: str
+    form: str | None
+    duration_hours: str
     ticket_price: str
-    is_avaible: bool
+    is_available: bool
     city_id: str
     description: str
     program: str
     route: dict[str, str]
 
 
-class ExcursionsRetrieve(BaseModel):
+class ExcursionRetrieve(BaseModel):
     pass
 
 
-class Hotels(BaseModel):
+class Hotel(BaseModel):
     id: str
     title: str
     address: str
@@ -59,15 +59,17 @@ class HotelsRetrieve(BaseModel):
     pass
 
 
-class Places(BaseModel):
+class Place(BaseModel):
     id: str
     title: str
+    address: str
+
 
     city_id: str
     description: str
 
 
-class PlacesRetrieve(BaseModel):
+class PlaceRetrieve(BaseModel):
     pass
 
 
@@ -86,6 +88,11 @@ class RestaurantRetrieve(BaseModel):
 class City(BaseModel):
     id: str
     title: str
+    events: list[Event]
+    excursions: list[Excursion]
+    hotels: list[Hotel]
+    places: list[Place]
+    restaurants: list[Restaurant]
 
 
 class _CityService(_MongoClient):
@@ -93,6 +100,11 @@ class _CityService(_MongoClient):
         super().__init__()
         self.cities_collection = self.db["cities"]
         self.regions_collection = self.db["regions"]
+        self.events_collection = self.db["events"]
+        self.excursions_collection = self.db["excursions"]
+        self.hotels_collection = self.db["hotels"]
+        self.places_collection = self.db["places"]
+        self.restaurants_collection = self.db["restaurants"]
 
     def _parse_list(self, data: dict):
         _id = str(data.pop("_id"))
@@ -138,6 +150,90 @@ class _CityService(_MongoClient):
                 self._parse_list, (await self.cities_collection.find({}, {"dictionary_data.title": 1, "_id": 1}).to_list(length=None))  # type: ignore
             )
         )
+    
+    async def find_events_by_city_id(self, city_id: str):
+        return list(
+            map(
+            self._parse_list,
+            await self.events_collection.find({"dictionary_data.city": city_id}, {
+                "_id": 1,
+                "dictionary_data.title": 1#,
+                # "dictionary_data.age": 1,
+                # "dictionary_data.timetable_by_place.schedule.start": 1,
+                # "dictionary_data.timetable_by_place.schedule.end": 1,
+                # "dictionary_data.ticket_price": 1,
+                # "dictionary_data.is_can_buy": 1,
+                # "dictionary_data.city": 1,
+                # "dictionary_data.description": 1
+            }).to_list(length = None)) #type: ignore
+        )
+        
+    
+    async def find_excursions_by_city_id(self, city_id: str):
+        return list(
+            map(
+            self._parse_list,
+            await self.excursions_collection.find({"dictionary_data.city": city_id}, {
+                "_id": 1,
+                "dictionary_data.title": 1#,
+                # "dictionary_data.min_age": 1,
+                # "dictionary_data.audioguide": 1,
+                # "dictionary_data.language": 1,
+                # "dictionary_data.form": 1,
+                # "dictionary_data.duration_hours": 1,
+                # "dictionary_data.price": 1,
+                # "dictionary_data.is_can_buy": 1,
+                # "dictionary_data.city": 1,
+                # "dictionary_data.description": 1,
+                # "dictionary_data.program": 1,
+                # "dictionary_data.route": 1,
+
+            }).to_list(length = None)) #type: ignore
+        )
+    
+    async def find_hotels_by_city_id(self, city_id: str):
+        return list(
+            map(
+            self._parse_list,
+            await self.excursions_collection.find({"dictionary_data.city": city_id}, {
+                "_id": 1,
+                "dictionary_data.title": 1#,
+                # "dictionary_data.": 1,
+                # "dictionary_data.": 1,
+                # "dictionary_data.": 1,
+                # "dictionary_data.": 1,
+                # "dictionary_data.": 1,
+                # "dictionary_data.": 1,
+                # "dictionary_data.": 1,
+                # "dictionary_data.": 1,
+                # "dictionary_data.": 1,
+                # "dictionary_data.description": 1,
+            }).to_list(length = None)) #type: ignore
+        )
+    
+    async def find_places_by_city_id(self, city_id: str):
+        return list(
+            map(
+            self._parse_list,
+            await self.places_collection.find({"dictionary_data.city": city_id}, {
+                "_id": 1,
+                "dictionary_data.title": 1
+            }.to_list(length = None)) #type^ ignore
+            )
+        )
+    
+    async def find_restaurants_by_city_id(self, city_id: str):
+        return list(
+            map(
+            self._parse_list,
+            await self.restaurants_collection.find({"dictionary_data.city": city_id}, {
+                "_id": 1,
+                "dictionary_data.title": 1
+            }.to_list(length = None)) #type^ ignore
+            )
+        )
+        
+
 
 
 CityService = _CityService()
