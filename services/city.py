@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 from schemas.city import BaseCity
+from schemas.hotel_data import BaseHotel
 from .database import _MongoClient
 from bson.objectid import ObjectId
 
@@ -137,6 +138,20 @@ class _CityService(_MongoClient):
                 ).to_list(
                     length=None  # type: ignore
                 ),  
+            )
+        )
+    async def find_hotel_by_id(self, _id: str) -> BaseHotel:
+        hotel = await self.hotels_collection.find_one({"_id": ObjectId(_id)})
+        if not hotel:
+            raise ValueError("City not found")
+        return BaseHotel.from_dict(hotel)
+
+    async def list_hotels(self):
+        """Returns brief information on hotels."""
+        return list(
+            map(
+                self._parse_list,
+                (await self.hotels_collection.find({}).sort("dictionary_data.sort", -1).to_list(length=None)),  # type: ignore
             )
         )
 
