@@ -2,16 +2,8 @@ from dataclasses import dataclass
 from typing import Any, Mapping, no_type_check
 
 from pydantic import BaseModel
+from .base import Coordinates, ModelWithID
 
-
-@dataclass
-class Coordinates:
-    x: float = 0.0
-    y: float = 0.0
-
-
-class ModelWithID(BaseModel):
-    id: str
 
 
 class HotelPlan(BaseModel):

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from schemas.city import BaseCity
 from schemas.hotel_data import BaseHotel
+from schemas.restaurants import RestaurantRetrieve
 from .database import _MongoClient
 from bson.objectid import ObjectId
 
@@ -60,7 +61,7 @@ class _CityService(_MongoClient):
             raise ValueError("City not found")
         return BaseCity.from_dict(city)
 
-    @cached(TTLCache(maxsize=512, ttl=timedelta(hours=1).total_seconds()), key=lambda _, i: i)
+    @cached(TTLCache(maxsize=512, ttl=timedelta(hours=1).total_seconds()))
     async def list_cities(self):
         """Returns brief information on cities."""
         return list(
@@ -70,7 +71,7 @@ class _CityService(_MongoClient):
             )
         )
 
-    @cached(TTLCache(maxsize=512, ttl=timedelta(hours=1).total_seconds()), key=lambda _, i: i)
+    @cached(TTLCache(maxsize=512, ttl=timedelta(hours=1).total_seconds()), key=lambda _, i, l: (i, l))
     async def find_events_by_city_id(self, city_id: str, limit: int | None):
         cursor = self.events_collection.find(
             {"dictionary_data.city": city_id},
@@ -88,7 +89,7 @@ class _CityService(_MongoClient):
             )
         )
 
-    @cached(TTLCache(maxsize=512, ttl=timedelta(hours=1).total_seconds()), key=lambda _, i: i)
+    @cached(TTLCache(maxsize=512, ttl=timedelta(hours=1).total_seconds()), key=lambda _, i, l: (i, l))
     async def find_excursions_by_city_id(self, city_id: str, limit: int | None):
         cursor = self.excursions_collection.find(
             {"dictionary_data.city": city_id},
@@ -106,7 +107,7 @@ class _CityService(_MongoClient):
             )
         )
 
-    @cached(TTLCache(maxsize=512, ttl=timedelta(hours=1).total_seconds()), key=lambda _, i: i)
+    @cached(TTLCache(maxsize=512, ttl=timedelta(hours=1).total_seconds()), key=lambda _, i, l: (i, l))
     async def find_hotels_by_city_id(self, city_id: str, limit: int | None):
         cursor = self.hotels_collection.find(
             {"dictionary_data.city": city_id},
@@ -162,15 +163,34 @@ class _CityService(_MongoClient):
             raise ValueError("City not found")
         return BaseHotel.from_dict(hotel)
 
-    @cached(TTLCache(maxsize=512, ttl=timedelta(hours=1).total_seconds()))
+    @cached(TTLCache(maxsize=64, ttl=timedelta(hours=1).total_seconds()))
     async def list_hotels(self):
         """Returns brief information on hotels."""
         return list(
             map(
                 self._parse_list,
-                (await self.hotels_collection.find({}, {"dictionary_data.title": 1, "_id": 1}).sort("dictionary_data.sort", -1).to_list(length=None)),  # type: ignore
+                (await self.hotels_collection.find({}, {"dictionary_data.title": 1, "_id": 1}).to_list(length=None)),  # type: ignore
             )
         )
+    
+    @cached(TTLCache(maxsize=64, ttl=timedelta(hours=1).total_seconds()))
+    async def list_restaurants(self):
+        """Returns brief information on restaurants."""
+        return list(
+            map(
+                self._parse_list,
+                (await self.restaurants_collection.find({}, {"dictionary_data.title": 1, "_id": 1}).to_list(length=None)),  # type: ignore
+            )
+        )
+
+    @cached(TTLCache(maxsize=64, ttl=timedelta(hours=1).total_seconds()), key=lambda _, i: i)
+    async def find_restaurant_by_id(self, id_: str):
+        restaurant = await self.restaurants_collection.find_one({"_id": ObjectId(id_)})
+        if not restaurant:
+            raise ValueError("Restaurant not found")
+        return RestaurantRetrieve.from_dict(restaurant)
+        
+
 
 
 CityService = _CityService()
