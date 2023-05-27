@@ -6,7 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 
 class _MongoClient:
-    def __init__(self) -> None:
+    def __init__(self, url: str | None = None) -> None:
         _url = os.environ.get("MONGO_CONN_STR")
         logger.info(f"Connecting to MongoDB at {_url}")
 

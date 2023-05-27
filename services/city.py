@@ -1,98 +1,8 @@
 from pydantic import BaseModel
+
+from schemas.city import BaseCity
 from .database import _MongoClient
 from bson.objectid import ObjectId
-from motor.motor_asyncio import AsyncIOMotorDatabase, AsyncIOMotorCollection
-
-
-class Event(BaseModel):
-    id: str
-    title: str
-    age: str
-    start_date: str | None
-    end_date: str | None
-    ticket_price: str
-    is_available: bool
-    city_id: str
-    description: str
-
-
-class EventRetrieve(BaseModel):
-    pass
-
-
-class Excursion(BaseModel):
-    id: str
-    title: str
-    age: str
-    has_audio_guide: bool
-    language: list[str]
-    form: str | None
-    duration_hours: str
-    ticket_price: str
-    is_available: bool
-    city_id: str
-    description: str
-    program: str
-    route: dict[str, str]
-
-
-class ExcursionRetrieve(BaseModel):
-    pass
-
-
-class Hotel(BaseModel):
-    id: str
-    title: str
-    address: str
-    email: str
-    phones: list[str]
-    activities: dict[str, str]
-    rooms: dict[str, bool]
-    meals: list[str]
-    services: list[dict[str, str]]
-    city_id: str
-    stars: str
-    description: str
-
-
-class HotelsRetrieve(BaseModel):
-    pass
-
-
-class Place(BaseModel):
-    id: str
-    title: str
-    address: str
-
-
-    city_id: str
-    description: str
-
-
-class PlaceRetrieve(BaseModel):
-    pass
-
-
-class Restaurant(BaseModel):
-    id: str
-    title: str
-
-    city_id: str
-    description: str
-
-
-class RestaurantRetrieve(BaseModel):
-    pass
-
-
-class City(BaseModel):
-    id: str
-    title: str
-    events: list[Event]
-    excursions: list[Excursion]
-    hotels: list[Hotel]
-    places: list[Place]
-    restaurants: list[Restaurant]
 
 
 class _CityService(_MongoClient):
@@ -126,8 +36,6 @@ class _CityService(_MongoClient):
         if not region:
             raise ValueError("Region not found")
         return self._parse_list(region)  # type: ignore
-        # _id = str(region.pop("_id"))
-        # return {**region, 'id': _id}
 
     async def find_cities_by_region_id(self, region_id: str):
         return list(
@@ -137,116 +45,100 @@ class _CityService(_MongoClient):
             )
         )
 
-    async def find_city_by_id(self, _id: str):
+    async def find_city_by_id(self, _id: str) -> BaseCity:
         city = await self.cities_collection.find_one({"_id": ObjectId(_id)})
         if not city:
             raise ValueError("City not found")
-        _id = str(city.pop("_id"))  # type: ignore
-        return {**city, "id": _id}
+        return BaseCity.from_dict(city)
 
     async def list_cities(self):
+        """Returns brief information on cities."""
         return list(
             map(
-                self._parse_list, (await self.cities_collection.find({}, {"dictionary_data.title": 1, "_id": 1}).to_list(length=None))  # type: ignore
+                self._parse_list,
+                (await self.cities_collection.find({}, {"dictionary_data.title": 1, "_id": 1}).sort("dictionary_data.sort", -1).to_list(length=None)),  # type: ignore
             )
         )
-    
-    async def find_events_by_city_id(self, city_id: str):
-        return list(
-            map(
-            self._parse_list,
-            await self.events_collection.find({"dictionary_data.city": city_id}, {
-                "_id": 1,
-                "dictionary_data.title": 1#,
-                # "dictionary_data.age": 1,
-                # "dictionary_data.timetable_by_place.schedule.start": 1,
-                # "dictionary_data.timetable_by_place.schedule.end": 1,
-                # "dictionary_data.ticket_price": 1,
-                # "dictionary_data.is_can_buy": 1,
-                # "dictionary_data.city": 1,
-                # "dictionary_data.description": 1
-            }).to_list(length = None)) #type: ignore
-        )
-        
-    
-    async def find_excursions_by_city_id(self, city_id: str):
-        return list(
-            map(
-            self._parse_list,
-            await self.excursions_collection.find({"dictionary_data.city": city_id}, {
-                "_id": 1,
-                "dictionary_data.title": 1#,
-                # "dictionary_data.min_age": 1,
-                # "dictionary_data.audioguide": 1,
-                # "dictionary_data.language": 1,
-                # "dictionary_data.form": 1,
-                # "dictionary_data.duration_hours": 1,
-                # "dictionary_data.price": 1,
-                # "dictionary_data.is_can_buy": 1,
-                # "dictionary_data.city": 1,
-                # "dictionary_data.description": 1,
-                # "dictionary_data.program": 1,
-                # "dictionary_data.route": 1,
 
-            }).to_list(length = None)) #type: ignore
+    async def find_events_by_city_id(self, city_id: str, limit: int | None):
+        cursor = self.events_collection.find(
+            {"dictionary_data.city": city_id},
+            {
+                "_id": 1,
+                "dictionary_data.title": 1,
+            },
         )
-    
-    async def find_hotels_by_city_id(self, city_id: str):
+        if limit is not None:
+            cursor = cursor.limit(limit)
         return list(
             map(
-            self._parse_list,
-            await self.excursions_collection.find({"dictionary_data.city": city_id}, {
-                "_id": 1,
-                "dictionary_data.title": 1#,
-                # "dictionary_data.": 1,
-                # "dictionary_data.": 1,
-                # "dictionary_data.": 1,
-                # "dictionary_data.": 1,
-                # "dictionary_data.": 1,
-                # "dictionary_data.": 1,
-                # "dictionary_data.": 1,
-                # "dictionary_data.": 1,
-                # "dictionary_data.": 1,
-                # "dictionary_data.description": 1,
-            }).to_list(length = None)) #type: ignore
-        )
-    
-    async def find_places_by_city_id(self, city_id: str):
-        return list(
-            map(
-            self._parse_list,
-            await self.places_collection.find({"dictionary_data.city": city_id}, {
-                "_id": 1,
-                "dictionary_data.title": 1
-            }.to_list(length = None)) #type^ ignore
+                self._parse_list,
+                await cursor.to_list(length=None),  # type: ignore
             )
         )
-    
+
+    async def find_excursions_by_city_id(self, city_id: str, limit: int | None):
+        cursor = self.excursions_collection.find(
+            {"dictionary_data.city": city_id},
+            {
+                "_id": 1,
+                "dictionary_data.title": 1,
+            },
+        )
+        if limit is not None:
+            cursor = cursor.limit(limit)
+        return list(
+            map(
+                self._parse_list,
+                await cursor.to_list(length=None),  # type: ignore
+            )
+        )
+
+    async def find_hotels_by_city_id(self, city_id: str, limit: int | None):
+        cursor = self.hotels_collection.find(
+            {"dictionary_data.city": city_id},
+            {
+                "_id": 1,
+                "dictionary_data.title": 1,
+            },
+        )
+        if limit is not None:
+            cursor = cursor.limit(limit)
+        return list(
+            map(
+                self._parse_list,
+                await cursor.to_list(length=None),  # type: ignore
+            )
+        )
+
+    async def find_places_by_city_id(self, city_id: str, limit: int | None):
+        cursor = self.places_collection.find(
+            {"dictionary_data.city": city_id},
+            {"_id": 1, "dictionary_data.title": 1},
+        )
+        if limit is not None:
+            cursor = cursor.limit(limit)
+        return list(
+            map(
+                self._parse_list,
+                await cursor.to_list(
+                    length=None,  # type: ignore
+                ),
+            )
+        )
+
     async def find_restaurants_by_city_id(self, city_id: str):
         return list(
             map(
-            self._parse_list,
-            await self.restaurants_collection.find({"dictionary_data.city": city_id}, {
-                "_id": 1,
-                "dictionary_data.title": 1
-            }.to_list(length = None)) #type^ ignore
+                self._parse_list,
+                await self.restaurants_collection.find(
+                    {"dictionary_data.city": city_id},
+                    {"_id": 1, "dictionary_data.title": 1},
+                ).to_list(
+                    length=None  # type: ignore
+                ),  
             )
         )
-        
-    async def get_city_info_by_city_id(self, city_id: str) -> City:
-        events = self.find_events_by_city_id(city_id)
-        excursions = self.find_excursions_by_city_id(city_id)
-        hotels = self.find_hotels_by_city_id(city_id)
-        places = self.find_places_by_city_id(city_id)
-        restaurants = self.find_events_by_city_id(city_id)
-        city = self.find_city_by_id(city_id)
-        return {**city, 
-                "events": events, 
-                "excursions": excursions,
-                "hotels": hotels,
-                "places": places,
-                "restaurants": restaurants}
-
 
 
 CityService = _CityService()
