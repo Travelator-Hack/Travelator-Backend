@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from routes import auth_router, cities_router, regions_router, hotels_router, restaurants_router
 from fastapi.middleware.cors import CORSMiddleware
 
+from services.utils import init_indices
+
 
 app = FastAPI(title="Travelator REST API", version="0.0.1amogus")
 
@@ -19,3 +21,8 @@ app.include_router(cities_router)
 app.include_router(regions_router)
 app.include_router(hotels_router)
 app.include_router(restaurants_router)
+
+
+@app.on_event('startup')
+async def init_app():
+    await init_indices()

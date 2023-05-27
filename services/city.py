@@ -21,6 +21,8 @@ class _CityService(_MongoClient):
         self.hotels_collection = self.db["hotels"]
         self.places_collection = self.db["places"]
         self.restaurants_collection = self.db["restaurants"]
+        self.tours_collection = self.db['tours']
+        self.tracks_collection = self.db['tracks']
 
     def _parse_list(self, data: dict):
         _id = str(data.pop("_id"))
