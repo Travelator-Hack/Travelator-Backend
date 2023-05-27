@@ -16,12 +16,12 @@ def handle_hotels_exception():
 
 
 @router.get("/")
-async def cities_list(query: str | None = None):
+async def hotels_list(query: str | None = None):
     with handle_hotels_exception():
         return await CityService.list_hotels()
 
 
 @router.get("/{hotel_id}", response_model=BaseHotel)
-async def get_city(city_id: str):
+async def get_hotel(hotel_id: str):
     with handle_hotels_exception():
-        return await CityService.find_hotel_by_id(city_id)
+        return await CityService.find_hotel_by_id(hotel_id)

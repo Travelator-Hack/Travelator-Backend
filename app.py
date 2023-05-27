@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import auth_router, cities_router, regions_router
+from routes import auth_router, cities_router, regions_router, hotels_router
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -17,3 +17,4 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(cities_router)
 app.include_router(regions_router)
+app.include_router(hotels_router)
