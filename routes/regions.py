@@ -8,9 +8,9 @@ router = APIRouter(prefix="/regions", tags=["Regions"])
 
 
 @router.get("/")
-async def list_regions():
+async def list_regions(query: str | None = None):
     with handle_cities_exception():
-        return await CityService.list_regions()
+        return await CityService.list_regions(query)
 
 
 @router.get("/{region_id}")
