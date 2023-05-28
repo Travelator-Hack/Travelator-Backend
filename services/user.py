@@ -1,11 +1,17 @@
 from loguru import logger
 from pydantic import BaseModel, parse_obj_as
+
+from schemas.city import BaseCity
 from .database import _MongoClient
 
 
 class User(BaseModel):
     username: str
     hashed_password: str
+    current_city_id: str | None = None
+    current_city_name: str | None = None
+    current_region_id: str | None = None
+    current_region_name: str | None = None
 
 
 class NewUser(BaseModel):
@@ -73,3 +79,17 @@ class _UserService(_MongoClient):
         assert user, "User not found."
 
         return user
+    
+    async def update_city(self, username: str, city: BaseCity):
+        user = await self.single(username)
+        assert user, 'user not found'
+
+        await self.users_collection.update_one(
+            {'username': username},
+            {"$set":{
+                'current_city_id': city.id,
+                'current_city_name': city.title,
+                'current_region_id': city.region_id,
+                'current_region_name': city.region_name,
+            }},
+        )

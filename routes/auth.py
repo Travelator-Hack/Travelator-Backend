@@ -10,7 +10,9 @@ router = APIRouter(prefix="/users", tags=["User Auth"])
 
 
 class UserOut(BaseModel):
-    username: str
+    username: str    
+    current_city_id: str | None = None
+    current_city_name: str | None = None
 
 
 @contextmanager

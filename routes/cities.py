@@ -19,7 +19,7 @@ def handle_cities_exception():
 @router.get("/")
 async def cities_list(query: str | None = None):
     with handle_cities_exception():
-        return await CityService.list_cities()
+        return await CityService.list_cities(query)
 
 
 @router.get("/{city_id}", response_model=BaseCity)

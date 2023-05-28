@@ -32,11 +32,14 @@ class _CityService(_MongoClient):
         return bool(await self.cities_collection.find_one({"title": title}))
 
     @cached(TTLCache(maxsize=80, ttl=timedelta(hours=1).total_seconds()))
-    async def list_regions(self):
+    async def list_regions(self, query: str | None):
+        search = {}
+        if query is not None:
+            search = {"dictionary_data.title": {'$regex': query}}
         return list(
             map(
                 self._parse_list,
-                await self.regions_collection.find({}, {"dictionary_data.title": 1, "_id": 1}).to_list(length=86),  # type: ignore
+                await self.regions_collection.find(search, {"dictionary_data.title": 1, "_id": 1}).to_list(length=86),  # type: ignore
             )
         )
 
@@ -61,15 +64,23 @@ class _CityService(_MongoClient):
         city = await self.cities_collection.find_one({"_id": ObjectId(_id)})
         if not city:
             raise ValueError("City not found")
-        return BaseCity.from_dict(city)
+        print(city)
+        region_id = city['dictionary_data'].get('region')
+        region = None
+        if region_id:
+            region = await self.find_region_by_id(city['dictionary_data'].get('region'))
+        return BaseCity.from_dict(city, region)
 
     @cached(TTLCache(maxsize=512, ttl=timedelta(hours=1).total_seconds()))
-    async def list_cities(self):
+    async def list_cities(self, query: str | None):
         """Returns brief information on cities."""
+        search = {}
+        if query is not None:
+            search = {"dictionary_data.title": {'$regex': query}}
         return list(
             map(
                 self._parse_list,
-                (await self.cities_collection.find({}, {"dictionary_data.title": 1, "_id": 1}).sort("dictionary_data.sort", -1).to_list(length=None)),  # type: ignore
+                (await self.cities_collection.find(search, {"dictionary_data.title": 1, "_id": 1}).sort("dictionary_data.sort", -1).to_list(length=None)),  # type: ignore
             )
         )
 
@@ -191,8 +202,6 @@ class _CityService(_MongoClient):
         if not restaurant:
             raise ValueError("Restaurant not found")
         return RestaurantRetrieve.from_dict(restaurant)
-        
-
 
 
 CityService = _CityService()
