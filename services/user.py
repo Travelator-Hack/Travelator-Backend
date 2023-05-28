@@ -1,3 +1,4 @@
+from fastapi import Header
 from loguru import logger
 from pydantic import BaseModel, parse_obj_as
 
@@ -71,7 +72,7 @@ class _UserService(_MongoClient):
         # XXX: Fakehash, need JWT here. Replace ASAP.
         return user.username + "_" + user.hashed_password
 
-    async def verify_token(self, token: str) -> User:
+    async def verify_token(self, token: str = Header(...)) -> User:
         """Verify token."""
         username, *_ = token.split("_")
         # XXX: Need to verify password too.
