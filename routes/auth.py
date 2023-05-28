@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 from contextlib import contextmanager
 
 from fastapi import APIRouter, Body, HTTPException, Header
@@ -5,7 +6,11 @@ from fastapi import APIRouter, Body, HTTPException, Header
 from services import UserService, NewUser
 
 
-router = APIRouter(prefix="/auth", tags=["User Auth"])
+router = APIRouter(prefix="/users", tags=["User Auth"])
+
+
+class UserOut(BaseModel):
+    username: str
 
 
 @contextmanager
@@ -33,3 +38,9 @@ async def get_current_user(token: str = Header(...)):
 async def create_new_user(data: NewUser = Body(...)):
     with handle_auth_exception():
         return await UserService.create(data)
+
+
+@router.get('/{username}', response_model=UserOut)
+async def get_user_data_by_username(username: str):
+    with handle_auth_exception():
+        return await UserService.single(username, throw=True)
