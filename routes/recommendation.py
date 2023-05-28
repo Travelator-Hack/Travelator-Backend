@@ -23,3 +23,8 @@ async def save_survey_result(form: SurveyForm, user: User = Depends(UserService.
 @router.get('/survey', response_model=SurveyForm | None)
 async def get_survey_result(user: User = Depends(UserService.verify_token)):
     return await RecommendationService.get_survey(user.username)
+
+
+@router.get('/cities')
+async def get_rec_city():
+    return await CityService.get_random_tour()

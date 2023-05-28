@@ -203,5 +203,19 @@ class _CityService(_MongoClient):
             raise ValueError("Restaurant not found")
         return RestaurantRetrieve.from_dict(restaurant)
 
+    async def get_random_tour(self):
+        # XXX: full random need more test data xd.
+        hotel = await self.hotels_collection.aggregate([{ "$sample": { "size": 1 } }]).to_list(length=1)
+        city = await self.cities_collection.aggregate([{ "$sample": { "size": 1 } }]).to_list(length=1)
+        rest = await self.restaurants_collection.aggregate([{ "$sample": { "size": 1 } }]).to_list(length=1)
+        tour = await self.tours_collection.aggregate([{ "$sample": { "size": 1 } }]).to_list(length=1)
+        exc = await self.excursions_collection.aggregate([{ "$sample": { "size": 1 } }]).to_list(length=1)
+
+        for c in (hotel, city, rest, tour, exc):
+            _id = c[0].pop('_id')  # type: ignore
+            c[0]['_id'] = str(_id)  # type: ignore
+
+        return {'hotel': hotel, 'city': city, 'rest': rest, 'tour': tour, 'exc': exc}
+
 
 CityService = _CityService()
