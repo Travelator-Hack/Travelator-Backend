@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import auth_router, cities_router, regions_router, hotels_router, restaurants_router, reviews_router
+from routes import auth_router, cities_router, regions_router, hotels_router, restaurants_router, reviews_router, rec_router
 from fastapi.middleware.cors import CORSMiddleware
 
 from services.utils import init_indices
@@ -22,6 +22,7 @@ app.include_router(regions_router)
 app.include_router(hotels_router)
 app.include_router(restaurants_router)
 app.include_router(reviews_router)
+app.include_router(rec_router)
 
 
 @app.on_event('startup')
